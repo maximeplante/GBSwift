@@ -40,13 +40,15 @@ class MMU: ReadWriteable {
     }
 
     func write(address: UInt16, value: UInt8) {
-        // Ignored
+        content[Int(address)] = value
     }
 
     public func readRange(offset: UInt16, length: UInt16) -> [UInt8] {
         var output = [UInt8]()
-        for i in offset...offset + length - 1 {
-            output.append(read(address: i))
+        for i in Int(offset)...Int(offset) + Int(length) - 1 {
+            if i <= UInt16.max {
+                output.append(read(address: UInt16(i)))
+            }
         }
         return output
     }
