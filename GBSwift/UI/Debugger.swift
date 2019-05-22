@@ -11,12 +11,12 @@ import Foundation
 class Debugger: TerminalWindowControllerDelegate {
     let terminal: TerminalWindowController
 
-    let gameboy: GameBoy
+    let gameboy: Gameboy
 
     var lastCommand: String
 
     public init(withTerminal terminal: TerminalWindowController,
-                andGameboy gameboy: GameBoy) {
+                andGameboy gameboy: Gameboy) {
         self.terminal = terminal
         self.gameboy = gameboy
         lastCommand = ""

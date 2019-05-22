@@ -8,7 +8,7 @@
 
 import Foundation
 
-class GameBoy {
+class Gameboy {
     public let cpu: CPU
     public let mmu: MMU
 

@@ -13,7 +13,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, TerminalWindowControllerDele
 
     let terminal: TerminalWindowController
     let debugger: Debugger
-    let gameboy: GameBoy
+    let gameboy: Gameboy
     let mmu: MMU
     let cpu: CPU
 
@@ -22,7 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, TerminalWindowControllerDele
         let bootRom = BootRom(fromFile: rom!)
         mmu = MMU(bootRom: bootRom)
         cpu = CPU(mmu: mmu)
-        gameboy = GameBoy(cpu: cpu, mmu: mmu)
+        gameboy = Gameboy(cpu: cpu, mmu: mmu)
         terminal = TerminalWindowController(windowNibName: "TerminalWindow")
         debugger = Debugger(withTerminal: terminal, andGameboy: gameboy)
         super.init()
