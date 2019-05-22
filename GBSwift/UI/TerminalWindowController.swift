@@ -35,13 +35,13 @@ class TerminalWindowController: NSWindowController {
             let str = NSAttributedString(string: content, attributes: attributes as [NSAttributedString.Key : Any])
             ts.insert(str, at: ts.length)
         }
+        outputTextView.scrollToEndOfDocument(self)
     }
 
     @IBAction func onEnter(_ sender: Any) {
         writeLine(content: "> " + inputTextView.stringValue)
         delegate?.command(input: inputTextView.stringValue)
         inputTextView.stringValue = ""
-        outputTextView.scrollToEndOfDocument(self)
     }
 }
 
