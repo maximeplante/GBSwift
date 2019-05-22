@@ -53,7 +53,7 @@ class Debugger: TerminalWindowControllerDelegate, GameboyDelegate {
             return
         }
         guard let endAddr = tryParseIntArgument(arguments: arguments, index: 2) else {
-            let offset = 15 * (startAddr / 16)
+            let offset = 16 * (startAddr / 16)
             printMemorySegment(offset: offset, length: 48, cursor: startAddr - offset)
             terminal.writeLine(content: "")
             return
@@ -140,7 +140,7 @@ class Debugger: TerminalWindowControllerDelegate, GameboyDelegate {
         }
         terminal.writeLine(content: "")
         terminal.writeLine(content: "--- Memory ---")
-        let offset = 15 * (Int(gameboy.cpu.pc) / 16)
+        let offset = 16 * (Int(gameboy.cpu.pc) / 16)
         printMemorySegment(offset: offset, length: 48, cursor: Int(gameboy.cpu.pc) - offset)
         terminal.writeLine(content: "")
     }
