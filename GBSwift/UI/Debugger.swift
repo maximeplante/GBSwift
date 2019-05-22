@@ -8,7 +8,8 @@
 
 import Foundation
 
-class Debugger: TerminalWindowControllerDelegate {
+class Debugger: TerminalWindowControllerDelegate, GameboyDelegate {
+
     let terminal: TerminalWindowController
 
     let gameboy: Gameboy
@@ -21,33 +22,9 @@ class Debugger: TerminalWindowControllerDelegate {
         self.gameboy = gameboy
         lastCommand = ""
         self.terminal.delegate = self
+        self.gameboy.delegate = self
         terminal.setTitle(title: "GBSwift Debugger")
         terminal.writeLine(content: "GBSwift Debugger Terminal\n")
-    }
-
-    public func command(input: String) {
-        var command = input
-        if command.count == 0 {
-            command = lastCommand
-        }
-        if command.count == 0 {
-            return
-        }
-        lastCommand = command
-        let arguments = command.split(separator: " ")
-        switch arguments[0] {
-        case "step", "s":
-            stepCommand(arguments: arguments)
-            break;
-        case "state", "st":
-            stateCommand(arguments: arguments);
-            break;
-        case "reset", "rst":
-            resetCommand(arguments: arguments)
-            break;
-        default:
-            terminal.writeLine(content: "This command does not exist")
-        }
     }
 
     func stepCommand(arguments: Array<Substring>) {
@@ -68,6 +45,49 @@ class Debugger: TerminalWindowControllerDelegate {
 
     func stateCommand(arguments: Array<Substring>) {
         printGameBoyState()
+    }
+
+    func memCommand(arguments: Array<Substring>) {
+        guard let startAddr = tryParseIntArgument(arguments: arguments, index: 1) else {
+            terminal.writeLine(content: "No address specified.")
+            return
+        }
+        guard let endAddr = tryParseIntArgument(arguments: arguments, index: 2) else {
+            let offset = 15 * (startAddr / 16)
+            printMemorySegment(offset: offset, length: 48, cursor: startAddr - offset)
+            terminal.writeLine(content: "")
+            return
+        }
+        printMemorySegment(offset: startAddr, length: endAddr - startAddr + 1, cursor: -1)
+        terminal.writeLine(content: "")
+    }
+
+    func brkCommand(arguments: Array<Substring>) {
+        guard let address = tryParseIntArgument(arguments: arguments, index: 1) else {
+            terminal.write(content: "Breakpoints:")
+            for b in gameboy.breakpoints {
+                terminal.write(content: String(format: " $%04X", b))
+            }
+            terminal.writeLine(content: "")
+            return
+        }
+        gameboy.addBreakpoint(address: UInt16(address))
+        terminal.writeLine(content: String(format: "Breakpoint added at $%04X", address))
+    }
+
+    func rmbrkCommand(arguments: Array<Substring>) {
+        guard let address = tryParseIntArgument(arguments: arguments, index: 1) else {
+            gameboy.removeAllBreakpoints()
+            terminal.writeLine(content: "All breakpoints deleted")
+            return
+        }
+        gameboy.removeBreakpoint(address: UInt16(address))
+        terminal.writeLine(content: String(format: "Removed breakpoint at $%04X", address))
+    }
+
+    func runCommand(arguments: Array<Substring>) {
+        gameboy.run()
+        terminal.writeLine(content: "Running...")
     }
 
     func resetCommand(arguments: Array<Substring>) {
@@ -143,5 +163,55 @@ class Debugger: TerminalWindowControllerDelegate {
                 terminal.write(content: String(format: " %02X ", byteArray[i]))
             }
         }
+    }
+
+    // MARK: - TerminalWindowControllerDelegate
+
+    public func command(input: String) {
+        var command = input
+        if command.count == 0 {
+            command = lastCommand
+        }
+        if command.count == 0 {
+            return
+        }
+        lastCommand = command
+        let arguments = command.split(separator: " ")
+        switch arguments[0] {
+        case "step", "s":
+            stepCommand(arguments: arguments)
+            break
+        case "state", "st":
+            stateCommand(arguments: arguments)
+            break
+        case "mem", "m":
+            memCommand(arguments: arguments)
+            break
+        case "brk", "b":
+            brkCommand(arguments: arguments)
+            break
+        case "rmbrk", "rb":
+            rmbrkCommand(arguments: arguments)
+            break
+        case "run", "r":
+            runCommand(arguments: arguments)
+            break
+        case "reset", "rst":
+            resetCommand(arguments: arguments)
+            break
+        default:
+            terminal.writeLine(content: "This command does not exist")
+        }
+    }
+
+    // MARK: - GameboyDelegate
+
+    func didEncounterBreakpoint() {
+        terminal.writeLine(content: "Breakpoint encountered")
+        printGameBoyState()
+    }
+
+    func didEncounterExecutionError(message: String) {
+        terminal.writeLine(content: "Error: " + message)
     }
 }
