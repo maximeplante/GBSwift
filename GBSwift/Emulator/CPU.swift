@@ -57,8 +57,8 @@ class CPU {
 
     // Write a word from the mmu (shortened name because it is often used)
     public func wWM(address: UInt16, word: UInt16) {
-        mmu.write(address: address, value: UInt8(word))
-        mmu.write(address: address + 1, value: UInt8(word >> 8))
+        mmu.write(address: address, value: UInt8(truncating: NSNumber(value: word)))
+        mmu.write(address: address + 1, value: UInt8(truncating: NSNumber(value: word >> 8)))
     }
 
     // Write a word from two registers (shortened name because it is often used)
@@ -133,7 +133,9 @@ class CPU {
                 return (3, 12)
             case 0x32:
                 // LD (HL-), A
-                mmu.write(address: rWR(h, l), value: r[a])
+                let addr = rWR(h, l)
+                let v = r[a]
+                mmu.write(address: addr, value: v)
                 wWR(h, l, word: rWR(h, l) - 1)
                 return (1, 8)
             // 0x40 - 0x7f (without 0x76)
@@ -167,9 +169,9 @@ class CPU {
                 return (info.size + 1, info.cycles)
             case 0xCD:
                 // CALL a16
-                wWM(address: sp - 2, word: pc)
+                wWM(address: sp - 2, word: pc + 3)
                 sp -= 2
-                pc = word
+                pc = word - 3
                 return (3, 24)
             case 0xE0:
                 // LDH (a8), A
@@ -178,7 +180,7 @@ class CPU {
             case 0xE2:
                 // LDH (C), A
                 mmu.write(address: 0xFF00 + UInt16(r[c]), value: r[a])
-                return (2, 8)
+                return (1, 8)
             case 0xF0:
                 // LDH A, (a8)
                 r[a] = mmu.read(address: 0xFF00 + UInt16(byte))
