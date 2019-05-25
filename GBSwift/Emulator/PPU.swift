@@ -22,4 +22,5 @@ class PPU {
 
 protocol PPUScreenDelegate {
     func setPixel(x: Int, y: Int, color: PPU.Color)
+    func drawScreen()
 }

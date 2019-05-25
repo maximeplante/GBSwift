@@ -109,8 +109,8 @@
 				E8C974D022924CA2008FBCCF /* ReadWriteable.swift */,
 				E8C974D622924D15008FBCCF /* MMU.swift */,
 				E8C974D822925057008FBCCF /* CPU.swift */,
-				E8C974DA2292F131008FBCCF /* Gameboy.swift */,
 				E8C4158A22997E650056CEB7 /* PPU.swift */,
+				E8C974DA2292F131008FBCCF /* Gameboy.swift */,
 			);
 			path = Emulator;
 			sourceTree = "<group>";

@@ -19,6 +19,8 @@ class ScreenWindowController: NSWindowController, PPUScreenDelegate {
         window?.title = "Screen"
     }
 
+    // MARK: - PPUScreenDelegate
+
     public func setPixel(x: Int, y: Int, color: PPU.Color) {
         switch color {
         case .white:
@@ -34,5 +36,9 @@ class ScreenWindowController: NSWindowController, PPUScreenDelegate {
             screen.setPixel(x: x, y: y, color: .black)
             break
         }
+    }
+
+    public func drawScreen() {
+        screen.redraw()
     }
 }
