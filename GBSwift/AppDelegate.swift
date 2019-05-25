@@ -25,9 +25,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let bootRom = BootRom(fromFile: rom!)
 
         // Initialize Gameboy
-        mmu = MMU(bootRom: bootRom)
-        cpu = CPU(mmu: mmu)
         ppu = PPU()
+        mmu = MMU(bootRom: bootRom, ppu: ppu)
+        cpu = CPU(mmu: mmu)
         gameboy = Gameboy(cpu: cpu, mmu: mmu, ppu: ppu)
 
         // Initialize UI

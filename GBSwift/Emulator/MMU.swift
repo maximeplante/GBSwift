@@ -11,11 +11,13 @@ import Foundation
 class MMU: ReadWriteable {
 
     public let bootRom: ReadWriteable
+    public let ppu: PPU
     public var bootRomVisile: Bool
     public var content: [UInt8]
 
-    init(bootRom: ReadWriteable) {
+    init(bootRom: ReadWriteable, ppu: PPU) {
         self.bootRom = bootRom
+        self.ppu = ppu
         bootRomVisile = true
         content = [UInt8].init(repeating: 0x00, count: 65536)
     }
@@ -26,21 +28,33 @@ class MMU: ReadWriteable {
     }
 
     func read(address: UInt16) -> UInt8 {
-        let high = address & 0xFF00
-
-        switch high {
-        case 0x0000:
+        switch address {
+        case 0x0000...0x00FF:
+            // Bootrom
             if (bootRomVisile) {
                 return bootRom.read(address: address)
             }
             return content[Int(address)]
+        case 0x8000...0x97FF:
+            // PPU Tile Data
+            return ppu.read(address: address)
         default:
             return content[Int(address)]
         }
     }
 
     func write(address: UInt16, value: UInt8) {
+        // Keep the raw value
         content[Int(address)] = value
+
+        switch address {
+        case 0x8000...0x97FF:
+            // PPU Tile Data
+            ppu.write(address: address, value: value)
+            break
+        default:
+            break
+        }
     }
 
     public func readRange(offset: UInt16, length: UInt16) -> [UInt8] {
