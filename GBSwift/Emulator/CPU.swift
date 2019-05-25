@@ -72,6 +72,15 @@ class CPU {
             + UInt16(mmu.read(address: address + 1)) << 8
     }
 
+    /* Use to detect if the addition of v1 and v2 causes a nibble overflow.
+     * When a nibble overflows, the H flag generally needs to be set.
+     * The sub argument must be true if it is a substraction.
+     */
+    public func hasNibbleOverflow(v1: UInt8, v2: UInt8, sub: Bool = false) -> Bool {
+        let correctV2 = sub ? ~v2 + 1 : v2
+        return (v1 & 0x0F + correctV2 & 0x0F) & 0x10 == 0x10
+    }
+
     public func setFlag(_ flag: Flag) {
         r[f] |= flag.rawValue
     }
@@ -104,6 +113,10 @@ class CPU {
             case 0x00:
                 // NOP
                 return (1, 4)
+            case 0x03:
+                // INC BC
+                wWR(b, c, word: rWR(b, c) + 1)
+                return (1, 8)
             case 0x04, 0x05, 0x0C, 0x0D,
                  0x14, 0x15, 0x1C, 0x1D,
                  0x24, 0x25, 0x2C, 0x2D,
@@ -113,9 +126,18 @@ class CPU {
             case 0x11:
                 wWR(d, e, word: word)
                 return (3, 12)
+            case 0x13:
+                // INC DE
+                wWR(d, e, word: rWR(d, e) + 1)
+                return (1, 8)
             case 0x06, 0x0E, 0x16, 0x1E, 0x26, 0x2E, 0x36, 0x3E:
                 // LD R, d8
                 return ldR8(opcode: opcode, byte: byte)
+            case 0x17:
+                // RLA
+                // Call the equivalent CB instruction but with a lower cycle cost
+                let _ = cb(opcode: 0x17)
+                return (1, 4)
             case 0x18, 0x20, 0x28, 0x30, 0x38:
                 // JR
                 return jr(opcode: opcode, byte: byte)
@@ -127,6 +149,15 @@ class CPU {
                 // LD HL, d16
                 wWR(h, l, word: word)
                 return (3, 12)
+            case 0x22:
+                // LD (HL+), A
+                mmu.write(address: rWR(h, l), value: r[a])
+                wWR(h, l, word: rWR(h, l) + 1)
+                return (1, 8)
+            case 0x23:
+                // INC HL
+                wWR(h, l, word: rWR(h, l) + 1)
+                return (1, 8)
             case 0x31:
                 // LD SP, d16
                 sp = word
@@ -137,6 +168,10 @@ class CPU {
                 let v = r[a]
                 mmu.write(address: addr, value: v)
                 wWR(h, l, word: rWR(h, l) - 1)
+                return (1, 8)
+            case 0x33:
+                // INC SP
+                sp += 1
                 return (1, 8)
             // 0x40 - 0x7f (without 0x76)
             case 0x40, 0x41, 0x42, 0x43, 0x44, 0x45,
@@ -152,16 +187,34 @@ class CPU {
                  0x7C, 0x7D, 0x7E, 0x7F:
                 // LD R1, R2
                 return ldR1R2(opcode: opcode)
+            case 0x80...0x9F, 0xB8...0xBF,
+                 0xC6, 0xD6, 0xE6, 0xF6,
+                 0xCE, 0xDE, 0xEE, 0xFE:
+                // ADD, ADC, SUB, SBC, CP
+                return addSubCp(opcode: opcode, byte: byte)
+            case 0xA0...0xB7:
+                // AND, XOR, OR
+                return bitwise(opcode: opcode)
             case 0xAF:
                 // XOR A
                 r[f] = 0
                 r[a] = 0
                 setFlag(.z)
                 return (1, 4)
+            case 0xC1:
+                // POP BC
+                wWR(b, c, word: rWM(address: sp))
+                sp += 2
+                return (1, 12)
             case 0xC5:
                 // PUSH BC
-                wWM(address: sp - 2, word: rWR(b, c))
                 sp -= 2
+                wWM(address: sp, word: rWR(b, c))
+                return (1, 16)
+            case 0xC9:
+                // RET
+                pc = rWM(address: sp) - 1
+                sp += 2
                 return (1, 16)
             case 0xCB:
                 // CB prefix instructions
@@ -181,35 +234,69 @@ class CPU {
                 // LDH (C), A
                 mmu.write(address: 0xFF00 + UInt16(r[c]), value: r[a])
                 return (1, 8)
+            case 0xEA:
+                // LD (a16), A
+                mmu.write(address: word, value: r[a])
+                return (3, 16)
             case 0xF0:
                 // LDH A, (a8)
                 r[a] = mmu.read(address: 0xFF00 + UInt16(byte))
                 return (2, 12)
+            case 0xFA:
+                // LD A, (a16)
+                r[a] = mmu.read(address: word)
+                return (3, 16)
             default:
                 throw CPUError.notImplementedInstruction(opcode: opcode, pc: pc)
             }
     }
 
+    // MARK: - Instruction Implementation
+
     func incDecR(opcode: UInt8) -> (size: Int, cycles: Int) {
         let decrement = (opcode & 0x01) == 0x01
         let reg = Int((opcode & 0x38) >> 3)
-        // (HL)
-        if (reg == 6) {
+        // (HL) instead of register
+        let useHL = reg == 6
+
+        decrement ? setFlag(.n) : resetFlag(.n)
+
+        var original: UInt8
+        var final: UInt8
+
+        if (useHL) {
+            original = mmu.read(address: rWR(h, l))
+
             if decrement {
+                final = original - 1
                 mmu.write(address: rWR(h, l),
-                          value: (mmu.read(address: rWR(h, l)) - 1))
+                          value: final)
             } else {
+                final = original + 1
                 mmu.write(address: rWR(h, l),
-                          value: (mmu.read(address: rWR(h, l)) + 1))
+                          value: final)
             }
-            return (1, 12)
-        }
-        if (decrement) {
-            r[reg] -= 1
         } else {
-            r[reg] += 1
+            original = r[reg]
+
+            if (decrement) {
+                r[reg] -= 1
+            } else {
+                r[reg] += 1
+            }
+
+            final = r[reg]
         }
-        return (1, 4)
+
+        if hasNibbleOverflow(v1: original, v2: 1, sub: decrement) {
+            setFlag(.h)
+        } else {
+            resetFlag(.h)
+        }
+
+        final == 0 ? setFlag(.z) : resetFlag(.z)
+
+        return (1, useHL ? 12 : 4)
     }
 
     func ldR8(opcode: UInt8, byte: UInt8) -> (size: Int, cycles: Int) {
@@ -247,8 +334,7 @@ class CPU {
             jump = flag(.c);
             break;
         default:
-            // Will never happen
-            break;
+            fatalError()
         }
         if jump {
             pc = UInt16(Int16(pc) + Int16(unsignedToSigned(byte)))
@@ -277,6 +363,95 @@ class CPU {
         // Either source or destination is (HL) -> 8 cycles
         let cycles = ptrSource || ptrSource ? 8 : 4
         return (1, cycles)
+    }
+
+    func addSubCp(opcode: UInt8, byte: UInt8) -> (size: Int, cycles: Int) {
+        var op = opcode
+        var writeOutput = true
+
+        // Turn the CP into a SUB but ignore the output
+        // CP
+        if opcode & 0xB8 == 0xB8 {
+            op = (opcode & 0x07) + 0x90
+            writeOutput = false
+        }
+        // CP d8
+        if opcode == 0xFE {
+            op = 0xD6
+            writeOutput = false
+        }
+
+        r[f] = 0
+        // Is it a substraction
+        let sub = op & 0x10 == 0x10
+        // Does it consider the carry
+        let carry = op & 0x80 == 0x80
+        // The input register
+        let register = Int(op & 0x07)
+        // The input is an immediate value instead of a register
+        let immediate = op & 0x40 == 0x40
+        // Is it using (HL) as input instead of a register
+        let useHL = register == 6
+
+        var input = useHL ? mmu.read(address: rWR(h, l)) : r[register]
+        input = immediate ? byte : input
+
+        // Invert the input if it is a substraction
+        input = sub ? ~input &+ 1 : input
+        var output = r[a] &+ input
+        // Add the carry if necessary
+        output += carry && flag(.c) ? 1 : 0
+
+        if output == 0 {
+            setFlag(.z)
+        }
+        if sub {
+            setFlag(.n)
+        }
+        if hasNibbleOverflow(v1: r[a], v2: input) {
+            setFlag(.h)
+        }
+        if (Int(r[a]) + Int(input) > 255) {
+            setFlag(.c)
+        }
+
+        if writeOutput {
+            r[a] = output
+        }
+
+        return (immediate ? 2 : 1, useHL ? 8 : 4)
+    }
+
+    func bitwise(opcode: UInt8) -> (size: Int, cycles: Int) {
+        let register = Int(opcode & 0x7)
+        let useHL = register == 6
+        let input = useHL ? mmu.read(address: rWR(h, l)) : r[register]
+        r[f] = 0
+        switch opcode & 0xF8 {
+        case 0xA0:
+            // AND
+            r[a] = r[a] & input
+            setFlag(.h)
+            break
+        case 0xA8:
+            // XOR
+            r[a] = r[a] ^ input
+            break
+        case 0xB0:
+            // OR
+            r[a] = r[a] | input
+            break
+        default:
+            fatalError()
+        }
+
+        if (r[a] == 0) {
+            setFlag(.z)
+        } else {
+            resetFlag(.z)
+        }
+
+        return (1, useHL ? 8 : 4)
     }
 
     func cb(opcode: UInt8) -> (size: Int, cycles: Int) {
