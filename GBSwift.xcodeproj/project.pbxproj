@@ -10,8 +10,12 @@
 		E85AC4952291036D00E110D7 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = E85AC4942291036D00E110D7 /* MainMenu.xib */; };
 		E85AC4A02291115100E110D7 /* TerminalWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E85AC49E2291115100E110D7 /* TerminalWindowController.swift */; };
 		E85AC4A12291115100E110D7 /* TerminalWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = E85AC49F2291115100E110D7 /* TerminalWindow.xib */; };
+		E8A15840229902DD004C387E /* ScreenWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8A1583E229902DD004C387E /* ScreenWindowController.swift */; };
+		E8A15841229902DD004C387E /* ScreenWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = E8A1583F229902DD004C387E /* ScreenWindow.xib */; };
+		E8A15843229903AE004C387E /* ScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8A15842229903AE004C387E /* ScreenView.swift */; };
 		E8C25810228EF813008EA727 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C2580F228EF813008EA727 /* AppDelegate.swift */; };
 		E8C25812228EF815008EA727 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E8C25811228EF815008EA727 /* Assets.xcassets */; };
+		E8C4158B22997E650056CEB7 /* PPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C4158A22997E650056CEB7 /* PPU.swift */; };
 		E8C974CF2292472E008FBCCF /* Debugger.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C974CE2292472E008FBCCF /* Debugger.swift */; };
 		E8C974D122924CA2008FBCCF /* ReadWriteable.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C974D022924CA2008FBCCF /* ReadWriteable.swift */; };
 		E8C974D322924CE1008FBCCF /* BootRom.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C974D222924CE1008FBCCF /* BootRom.swift */; };
@@ -25,11 +29,15 @@
 		E85AC4942291036D00E110D7 /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainMenu.xib; sourceTree = "<group>"; };
 		E85AC49E2291115100E110D7 /* TerminalWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalWindowController.swift; sourceTree = "<group>"; };
 		E85AC49F2291115100E110D7 /* TerminalWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TerminalWindow.xib; sourceTree = "<group>"; };
+		E8A1583E229902DD004C387E /* ScreenWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenWindowController.swift; sourceTree = "<group>"; };
+		E8A1583F229902DD004C387E /* ScreenWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ScreenWindow.xib; sourceTree = "<group>"; };
+		E8A15842229903AE004C387E /* ScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenView.swift; sourceTree = "<group>"; };
 		E8C2580C228EF813008EA727 /* GBSwift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GBSwift.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E8C2580F228EF813008EA727 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E8C25811228EF815008EA727 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E8C25816228EF815008EA727 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E8C25817228EF815008EA727 /* GBSwift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GBSwift.entitlements; sourceTree = "<group>"; };
+		E8C4158A22997E650056CEB7 /* PPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PPU.swift; sourceTree = "<group>"; };
 		E8C974CE2292472E008FBCCF /* Debugger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Debugger.swift; sourceTree = "<group>"; };
 		E8C974D022924CA2008FBCCF /* ReadWriteable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadWriteable.swift; sourceTree = "<group>"; };
 		E8C974D222924CE1008FBCCF /* BootRom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BootRom.swift; sourceTree = "<group>"; };
@@ -87,6 +95,9 @@
 				E8C974CE2292472E008FBCCF /* Debugger.swift */,
 				E85AC49F2291115100E110D7 /* TerminalWindow.xib */,
 				E85AC49E2291115100E110D7 /* TerminalWindowController.swift */,
+				E8A1583E229902DD004C387E /* ScreenWindowController.swift */,
+				E8A1583F229902DD004C387E /* ScreenWindow.xib */,
+				E8A15842229903AE004C387E /* ScreenView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -99,6 +110,7 @@
 				E8C974D622924D15008FBCCF /* MMU.swift */,
 				E8C974D822925057008FBCCF /* CPU.swift */,
 				E8C974DA2292F131008FBCCF /* Gameboy.swift */,
+				E8C4158A22997E650056CEB7 /* PPU.swift */,
 			);
 			path = Emulator;
 			sourceTree = "<group>";
@@ -164,6 +176,7 @@
 				E8C974DD2293028B008FBCCF /* rom.bin in Resources */,
 				E8C25812228EF815008EA727 /* Assets.xcassets in Resources */,
 				E85AC4A12291115100E110D7 /* TerminalWindow.xib in Resources */,
+				E8A15841229902DD004C387E /* ScreenWindow.xib in Resources */,
 				E85AC4952291036D00E110D7 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -178,11 +191,14 @@
 				E8C974D322924CE1008FBCCF /* BootRom.swift in Sources */,
 				E8C974D722924D15008FBCCF /* MMU.swift in Sources */,
 				E8C974D922925057008FBCCF /* CPU.swift in Sources */,
+				E8C4158B22997E650056CEB7 /* PPU.swift in Sources */,
 				E8C974CF2292472E008FBCCF /* Debugger.swift in Sources */,
+				E8A15843229903AE004C387E /* ScreenView.swift in Sources */,
 				E8C974DB2292F132008FBCCF /* Gameboy.swift in Sources */,
 				E8C974D122924CA2008FBCCF /* ReadWriteable.swift in Sources */,
 				E85AC4A02291115100E110D7 /* TerminalWindowController.swift in Sources */,
 				E8C25810228EF813008EA727 /* AppDelegate.swift in Sources */,
+				E8A15840229902DD004C387E /* ScreenWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

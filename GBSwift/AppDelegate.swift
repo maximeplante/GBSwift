@@ -9,45 +9,55 @@
 import Cocoa
 
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate, TerminalWindowControllerDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate {
 
     let terminal: TerminalWindowController
+    let screen: ScreenWindowController
     let debugger: Debugger
     let gameboy: Gameboy
     let mmu: MMU
     let cpu: CPU
+    let ppu: PPU
 
     override init() {
+        // Initialize boot rom
         let rom = Bundle.main.url(forResource: "rom", withExtension: "bin")
         let bootRom = BootRom(fromFile: rom!)
+
+        // Initialize Gameboy
         mmu = MMU(bootRom: bootRom)
         cpu = CPU(mmu: mmu)
-        gameboy = Gameboy(cpu: cpu, mmu: mmu)
+        ppu = PPU()
+        gameboy = Gameboy(cpu: cpu, mmu: mmu, ppu: ppu)
+
+        // Initialize UI
         terminal = TerminalWindowController(windowNibName: "TerminalWindow")
+        screen = ScreenWindowController(windowNibName: "ScreenWindow")
+        ppu.screenDelegate = screen
         debugger = Debugger(withTerminal: terminal, andGameboy: gameboy)
+
         super.init()
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Insert code here to initialize your application
         showDebugger()
-    }
-
-    func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
+        showScreen()
     }
 
     @IBAction func showDebuggerMenuAction(_ sender: Any) {
         showDebugger()
     }
 
+    @IBAction func showScreenMenuAction(_ sender: Any) {
+        showScreen()
+    }
+
     func showDebugger() {
         terminal.window?.makeKeyAndOrderFront(nil)
     }
 
-    public func command(input: String) {
-        terminal.writeLine(content: input)
+    func showScreen() {
+        screen.window?.makeKeyAndOrderFront(nil)
     }
-
 }
 

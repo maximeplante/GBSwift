@@ -607,6 +607,12 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="View" id="HyV-fh-RgO">
                         <items>
+                            <menuItem title="Show Screen" id="Sfb-9d-MBj">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <connections>
+                                    <action selector="showScreenMenuAction:" target="Voe-Tx-rLC" id="eh4-XP-aV3"/>
+                                </connections>
+                            </menuItem>
                             <menuItem title="Show Debugger" id="PWM-nE-7NB">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>

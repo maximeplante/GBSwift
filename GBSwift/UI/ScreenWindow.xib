@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14490.70"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="ScreenWindowController" customModule="GBSwift" customModuleProvider="target">
+            <connections>
+                <outlet property="screen" destination="2l6-Ln-sW3" id="MnP-8K-B3J"/>
+                <outlet property="window" destination="F0z-JX-Cv5" id="gIp-Ho-8D9"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <window title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="F0z-JX-Cv5">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="196" y="240" width="160" height="144"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="800"/>
+            <view key="contentView" id="se5-gp-TjO">
+                <rect key="frame" x="0.0" y="0.0" width="160" height="144"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <customView horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="2l6-Ln-sW3" customClass="ScreenView" customModule="GBSwift" customModuleProvider="target">
+                        <rect key="frame" x="0.0" y="0.0" width="160" height="144"/>
+                        <constraints>
+                            <constraint firstAttribute="width" secondItem="2l6-Ln-sW3" secondAttribute="height" multiplier="10:9" id="e7c-2W-99D"/>
+                        </constraints>
+                    </customView>
+                </subviews>
+                <constraints>
+                    <constraint firstAttribute="bottom" secondItem="2l6-Ln-sW3" secondAttribute="bottom" priority="250" id="BH1-TT-8YN"/>
+                    <constraint firstItem="2l6-Ln-sW3" firstAttribute="top" secondItem="se5-gp-TjO" secondAttribute="top" priority="250" id="CF8-gg-6H9"/>
+                    <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="2l6-Ln-sW3" secondAttribute="bottom" priority="750" id="P88-Dl-jP9"/>
+                    <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="2l6-Ln-sW3" secondAttribute="trailing" priority="750" id="azT-oO-ZO3"/>
+                    <constraint firstAttribute="trailing" secondItem="2l6-Ln-sW3" secondAttribute="trailing" priority="250" id="bhp-RF-8CD"/>
+                    <constraint firstItem="2l6-Ln-sW3" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="se5-gp-TjO" secondAttribute="leading" priority="750" id="fmW-Ka-V3c"/>
+                    <constraint firstItem="2l6-Ln-sW3" firstAttribute="top" relation="greaterThanOrEqual" secondItem="se5-gp-TjO" secondAttribute="top" priority="750" id="jFS-de-UHh"/>
+                    <constraint firstItem="2l6-Ln-sW3" firstAttribute="centerX" secondItem="se5-gp-TjO" secondAttribute="centerX" id="kmb-ow-ryP"/>
+                    <constraint firstItem="2l6-Ln-sW3" firstAttribute="centerY" secondItem="se5-gp-TjO" secondAttribute="centerY" id="ti6-Hg-1Zw"/>
+                    <constraint firstItem="2l6-Ln-sW3" firstAttribute="leading" secondItem="se5-gp-TjO" secondAttribute="leading" priority="250" id="zUC-Dg-Dj8"/>
+                </constraints>
+            </view>
+            <connections>
+                <outlet property="delegate" destination="-2" id="0bl-1N-AYu"/>
+            </connections>
+            <point key="canvasLocation" x="44" y="61"/>
+        </window>
+    </objects>
+</document>

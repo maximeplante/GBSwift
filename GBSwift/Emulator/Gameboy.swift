@@ -11,15 +11,17 @@ import Foundation
 class Gameboy {
     public let cpu: CPU
     public let mmu: MMU
+    public let ppu: PPU
     public var breakpoints = [UInt16]()
     public var delegate: GameboyDelegate? = nil
     let queue: DispatchQueue
     let timePerCycle = 1.0 / 4194304.0
     var running = false
 
-    public init(cpu: CPU, mmu: MMU) {
+    public init(cpu: CPU, mmu: MMU, ppu: PPU) {
         self.cpu = cpu
         self.mmu = mmu
+        self.ppu = ppu
         self.queue = DispatchQueue(label: "Gameboy")
     }
 
