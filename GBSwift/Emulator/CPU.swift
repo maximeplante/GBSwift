@@ -57,8 +57,8 @@ class CPU {
 
     // Write a word from the mmu (shortened name because it is often used)
     public func wWM(address: UInt16, word: UInt16) {
-        mmu.write(address: address, value: UInt8(truncating: NSNumber(value: word)))
-        mmu.write(address: address + 1, value: UInt8(truncating: NSNumber(value: word >> 8)))
+        mmu.write(address: address, value: UInt8(word & 0x00FF))
+        mmu.write(address: address + 1, value: UInt8((word & 0xFF00) >> 8))
     }
 
     // Write a word from two registers (shortened name because it is often used)
@@ -280,7 +280,7 @@ class CPU {
             original = r[reg]
 
             if (decrement) {
-                r[reg] -= 1
+                r[reg] &-= 1
             } else {
                 r[reg] += 1
             }
@@ -461,7 +461,7 @@ class CPU {
         // Position of the bit operations (used in BIT, SET, RES)
         let bit = 2 * ((opcode & 0x30) >> 4) + ((opcode & 0x08) >> 3)
         // Direction of the rotation (used in RLC, RRC, RR, RL, SLA, SRA, SRL)
-        let right = (opcode & 0x04) == 0x04
+        let right = (opcode & 0x08) == 0x08
         // Carry of the rotation (used in RLC, RRC, SLA, SRA, SRL)
         let carry = (opcode & 0x10) != 0x10
         // True if it is a shift instead of a rotation
@@ -479,7 +479,7 @@ class CPU {
         // SWAP
         if (opcode & 0xF8) == 0x20 {
             r[f] = 0 // Reset all flags
-            result = Int(((source & 0xF0) >> 4) & ((source & 0x0F) << 4))
+            result = ((Int(source) & 0xF0) >> 4) & ((Int(source) & 0x0F) << 4)
             if result == 0 {
                 setFlag(.z)
             }
@@ -490,22 +490,24 @@ class CPU {
             {
             case 0x00:
                 // RLC, RRC, RR, RL, SLA, SRA, SRL
-                r[f] = 0; // Reset all flags
                 // Find the but that will be shifted/rotated out of the byte
-                let extraBit = right ? source & 0x01 : (source & 0x90) >> 8;
+                let extraBit = right ? source & 0x01 : (source & 0x80) >> 7
                 // Shift the byte
-                result = Int(right ? source >> 1 : source << 1);
-                // Apply the extraBit to the other end of the byte if it is a rotation
-                if !shift {
-                    result |= Int(right ? extraBit * 0x90 : extraBit)
+                result = right ? Int(source) >> 1 : Int(source) << 1
+                // Apply the carry to the other end of the byte if it is a rotation with carry
+                if !shift && flag(.c) && !carry {
+                    result |= Int(right ? 0x80 : 0x01)
+                // Apply the extra bit to the other end of the byte if it is a rotation without carry
+                } else if !shift && carry {
+                    result |= Int(right ? extraBit * 0x80 : extraBit * 0x01)
                 }
                 // Special case for SRA where bit 7 keeps its value during the shift
                 if shift && right && carry {
-                    result |= Int(source & 0x90)
+                    result |= Int(source & 0x80)
                 }
-                // Set the carry flag if the extraBit was 1 and the instruction
-                // modifies the carry
-                if carry && extraBit == 1 {
+                // Reset all flags
+                r[f] = 0
+                if extraBit == 1 {
                     setFlag(.c)
                 }
                 if result == 0 {
@@ -536,9 +538,9 @@ class CPU {
         }
         // When the register F is selected, it actually means (HL) in asm code
         if (register == 6) {
-            mmu.write(address: rWR(h, l), value: UInt8(result))
+            mmu.write(address: rWR(h, l), value: UInt8(result & 0xFF))
         } else {
-            r[register] = UInt8(result)
+            r[register] = UInt8(result & 0xFF)
         }
         return (1, cycles);
     }
