@@ -39,6 +39,21 @@ class PPU : ReadWriteable {
      * tileData array when written. */
     var bgTileMap: [Int]
 
+    // Raster
+    enum RasterMode: Int {
+        case hblank = 0
+        case vblank = 1
+        case oam = 2
+        case vram = 3
+    }
+    var rasterMode: RasterMode
+    var rasterClock: Int
+    var rasterLine: Int
+
+    // Screen
+    var scrollX: UInt8
+    var scrollY: UInt8
+
     var screenDelegate: PPUScreenDelegate?
 
     init() {
@@ -55,6 +70,74 @@ class PPU : ReadWriteable {
         bgTileMap = [Int](repeating: 0, count: 2 * 32 * 32)
 
         memory = [UInt8](repeating: 0, count: 65536)
+
+        rasterLine = 0
+        rasterClock = 0
+        rasterMode = RasterMode.hblank
+
+        scrollX = 0
+        scrollY = 25
+    }
+
+    // MARK: - Raster
+
+    func step(cpuCyclesDelta: Int) {
+        rasterClock += cpuCyclesDelta
+
+        /* Code heavily inspired from
+         * http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-GPU-Timings */
+        switch rasterMode {
+        case .oam:
+            if rasterClock >= 80 {
+                rasterClock = 0
+                rasterMode = .vram
+            }
+            break
+        case .vram:
+            if rasterClock >= 172 {
+                rasterClock = 0
+                rasterMode = .hblank
+                display(line: rasterLine)
+            }
+            break
+        case .hblank:
+            if rasterClock >= 204 {
+                rasterClock = 0
+                rasterLine += 1
+                if rasterLine == 143 {
+                    rasterMode = .vblank
+                    screenDelegate?.drawScreen()
+                } else {
+                    rasterMode = .oam
+                }
+            }
+        case .vblank:
+            if rasterClock >= 456 {
+                rasterClock = 0
+                rasterLine += 1
+
+                if (rasterLine > 153) {
+                    rasterMode = .oam
+                    rasterLine = 0
+                }
+            }
+        }
+    }
+
+    func display(line screenY: Int) {
+        let bgY = (screenY + Int(scrollY)) & 0xFF
+        for screenX in 0..<160 {
+            let bgX = (screenX + Int(scrollX)) & 0xFF
+            var tileMapIndex = ((bgY & 0xF8) >> 3) * 32 + ((bgX & 0xF8) >> 3)
+            tileMapIndex += bgTileMapSelect == 0 ? 0 : 256
+            let tileIndex = bgTileMap[Int(tileMapIndex)]
+            let tile = tileData[tileIndex]
+            let yInTile = bgY % 8
+            let xInTile = bgX % 8
+            let relativeColor = tile.pixels[yInTile][xInTile]
+            let color = bgPalette[relativeColor]
+            screenDelegate?.setPixel(x: screenX, y: screenY, color: color)
+        }
     }
 
     // MARK: - ReadWriteable
@@ -119,7 +202,7 @@ class PPU : ReadWriteable {
         for i in 0..<8 {
             let colorIndex = (Int((firstByte) & (0x1 << i)) >> i)
                 + (Int(secondByte & (0x1 << i)) >> (i - 1))
-            tile.pixels[lineNumber][i] = Int(colorIndex)
+            tile.pixels[lineNumber][7 - i] = Int(colorIndex)
         }
     }
 

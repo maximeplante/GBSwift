@@ -33,7 +33,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize UI
         terminal = TerminalWindowController(windowNibName: "TerminalWindow")
         screen = ScreenWindowController(windowNibName: "ScreenWindow")
-        ppu.screenDelegate = screen
+        gameboy.screenDelegate = screen
         debugger = Debugger(withTerminal: terminal, andGameboy: gameboy)
 
         super.init()

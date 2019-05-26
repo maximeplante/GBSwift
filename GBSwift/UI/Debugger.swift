@@ -8,7 +8,7 @@
 
 import Foundation
 
-class Debugger: TerminalWindowControllerDelegate, GameboyDelegate {
+class Debugger: TerminalWindowControllerDelegate, GameboyDebuggerDelegate {
 
     let terminal: TerminalWindowController
 
@@ -22,7 +22,7 @@ class Debugger: TerminalWindowControllerDelegate, GameboyDelegate {
         self.gameboy = gameboy
         lastCommand = ""
         self.terminal.delegate = self
-        self.gameboy.delegate = self
+        self.gameboy.debuggerDelegate = self
         terminal.setTitle(title: "GBSwift Debugger")
         terminal.writeLine(content: "GBSwift Debugger Terminal\n")
     }

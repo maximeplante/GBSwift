@@ -8,7 +8,7 @@
 
 import Cocoa
 
-class ScreenWindowController: NSWindowController, PPUScreenDelegate {
+class ScreenWindowController: NSWindowController, GameboyScreenDelegate {
 
     @IBOutlet weak var screen: ScreenView!
     
