@@ -35,8 +35,7 @@ class MMU: ReadWriteable {
                 return bootRom.read(address: address)
             }
             return content[Int(address)]
-        case 0x8000...0x97FF:
-            // PPU Tile Data
+        case 0x8000...0x9FFF:
             return ppu.read(address: address)
         default:
             return content[Int(address)]
@@ -48,8 +47,7 @@ class MMU: ReadWriteable {
         content[Int(address)] = value
 
         switch address {
-        case 0x8000...0x97FF:
-            // PPU Tile Data
+        case 0x8000...0x9FFF:
             ppu.write(address: address, value: value)
             break
         default:

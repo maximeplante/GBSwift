@@ -32,11 +32,12 @@ class PPU : ReadWriteable {
     var bgTileMapSelect: Int
     // Contains the four colors of the background palette
     var bgPalette: [Color]
-    /* bgTileMaps[0]: tile map #0, bgTileMaps[1]: tile map #1
-     * The tile map contains the index in the TileData array of the tile to
-     * be displayed. The indexes are converted when the tile data is switched
-     * between #0 and #1. */
-    var bgTileMaps: [[Int]]
+    /* Store tile maps #0 and #1 one after the other. Index 0 is the tile at
+     * 0x9800 and index 2047 is the tile at 0x9FFF. The value in the array are
+     * the indexes of the tile in the internal tileData array. The indexes
+     * written to memory by the CPU are converted to indexes of the internal
+     * tileData array when written. */
+    var bgTileMap: [Int]
 
     var screenDelegate: PPUScreenDelegate?
 
@@ -51,9 +52,7 @@ class PPU : ReadWriteable {
             tileData.append(Tile())
         }
 
-        bgTileMaps = [[Int]]()
-        bgTileMaps.append([Int](repeating: 0, count: 32 * 32))
-        bgTileMaps.append([Int](repeating: 0, count: 32 * 32))
+        bgTileMap = [Int](repeating: 0, count: 2 * 32 * 32)
 
         memory = [UInt8](repeating: 0, count: 65536)
     }
@@ -72,6 +71,10 @@ class PPU : ReadWriteable {
             // Tile Data
             updateTileData(fromByteAtAddress: address)
             break
+        case 0x9800...0x9FFF:
+            // Tile Map #0 and #1
+            updateTileMap(fromByteAtAddress: address)
+            break
         default:
             /* This mean that somehow the MMU gaves us an address that does not map
              * to anything in the PPU. */
@@ -80,7 +83,28 @@ class PPU : ReadWriteable {
         }
     }
 
-    // MARK: - Tile Data Management
+    // MARK: - Background Tile Map
+
+    func updateTileMap(fromByteAtAddress address: UInt16) {
+        // From which tile map is this byte in
+        let tileDataIndex = internalTileDataIndex(fromIndex: memory[Int(address)])
+        bgTileMap[Int(address) - 0x9800] = tileDataIndex
+    }
+
+    // Convert a value in the tile map to the internal index of the tileData
+    func internalTileDataIndex(fromIndex index: UInt8) -> Int {
+        if tileDataSelect == 0 {
+            return Int(index)
+        }
+        if tileDataSelect == 1 {
+            let signedIndex = Int8(bitPattern: index)
+            return 256 + Int(signedIndex)
+        }
+        // Cannot select another tile data set than those two
+        fatalError()
+    }
+
+    // MARK: - Tile Data
 
     /* Updates the internal representation of a tile by reading the byte at the
      * given address. */
