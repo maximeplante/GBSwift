@@ -42,6 +42,8 @@ class MMU: ReadWriteable {
             return content[Int(address)]
         case 0x8000...0x9FFF:
             return ppu.read(address: address)
+        case 0xFF40...0xFF46:
+            return ppu.read(address: address)
         default:
             return content[Int(address)]
         }
@@ -55,6 +57,8 @@ class MMU: ReadWriteable {
         case 0x8000...0x9FFF:
             ppu.write(address: address, value: value)
             break
+        case 0xFF40...0xFF46:
+            return ppu.write(address: address, value: value)
         default:
             break
         }

@@ -33,12 +33,12 @@ class Gameboy: PPUScreenDelegate {
     }
 
     public func step() throws {
-        let _ = try cpu.step()
+        let _ = cpu.step()
     }
 
     public func run() {
         running = true
-        loop()
+        self.loop()
     }
 
     public func stop() {
@@ -46,45 +46,32 @@ class Gameboy: PPUScreenDelegate {
     }
 
     public func loop() {
-        self.queue.async {
-            let start = Date().timeIntervalSince1970
-            var cycles = 0
+        let start = Date().timeIntervalSince1970
+        var cycles = 0
 
-            do {
-                while cycles < 1000 && self.running {
-                    let delta = try self.cpu.step()
-                    cycles += delta
-                    self.ppu.step(cpuCyclesDelta: delta)
-                    if (self.breakpoints.count > 0 && self.breakpoints.contains(self.cpu.pc)) {
-                        self.running = false
-                        DispatchQueue.main.async {
-                            self.debuggerDelegate?.didEncounterBreakpoint()
-                        }
-                    }
-                }
-            } catch CPUError.notImplementedInstruction(let op, let pc) {
-                self.running = false
-                let message = String(format: "Error: Opcode %02X at memory location %04X is not implemented", op, pc)
-                DispatchQueue.main.async {
-                    self.debuggerDelegate?.didEncounterExecutionError(message: message)
-                }
-            } catch {
+        while cycles < 100000 && self.running {
+            let delta = self.cpu.step()
+            cycles += delta
+            self.ppu.step(cpuCyclesDelta: delta)
+            if (self.breakpoints.count > 0 && self.breakpoints.contains(self.cpu.pc)) {
                 self.running = false
                 DispatchQueue.main.async {
-                    self.debuggerDelegate?.didEncounterExecutionError(message: "Unexpected error")
+                    self.debuggerDelegate?.didEncounterBreakpoint()
                 }
             }
+        }
 
-            let elapsed = Date().timeIntervalSince1970 - start
+        let elapsed = Date().timeIntervalSince1970 - start
 
-            if !self.running {
-                return
-            }
+        if !self.running {
+            return
+        }
 
-            let deadline = DispatchTime.now() + Double(Int64(Double(NSEC_PER_SEC) * (self.timePerCycle * Double(cycles) - elapsed))) / Double(NSEC_PER_SEC)
-            self.queue.asyncAfter(deadline: deadline) {
-                self.loop()
-            }
+        let wait = Double(Int64(Double(NSEC_PER_SEC) * (self.timePerCycle * Double(cycles) - elapsed))) / Double(NSEC_PER_SEC)
+
+        let deadline = DispatchTime.now() + wait
+        self.queue.asyncAfter(deadline: deadline) {
+            self.loop()
         }
     }
 

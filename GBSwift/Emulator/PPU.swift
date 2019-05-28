@@ -76,7 +76,7 @@ class PPU : ReadWriteable {
         rasterMode = RasterMode.hblank
 
         scrollX = 0
-        scrollY = 25
+        scrollY = 0
     }
 
     // MARK: - Raster
@@ -106,7 +106,6 @@ class PPU : ReadWriteable {
                 rasterLine += 1
                 if rasterLine == 143 {
                     rasterMode = .vblank
-                    screenDelegate?.drawScreen()
                 } else {
                     rasterMode = .oam
                 }
@@ -117,6 +116,7 @@ class PPU : ReadWriteable {
                 rasterLine += 1
 
                 if (rasterLine > 153) {
+                    screenDelegate?.drawScreen()
                     rasterMode = .oam
                     rasterLine = 0
                 }
@@ -143,7 +143,16 @@ class PPU : ReadWriteable {
     // MARK: - ReadWriteable
 
     func read(address: UInt16) -> UInt8 {
-        return memory[Int(address)]
+        switch address {
+        case 0xFF42:
+            // SCY
+            return scrollY
+        case 0xFF44:
+            // LY
+            return UInt8(rasterLine)
+        default:
+            return memory[Int(address)]
+        }
     }
 
     func write(address: UInt16, value: UInt8) {
@@ -158,10 +167,17 @@ class PPU : ReadWriteable {
             // Tile Map #0 and #1
             updateTileMap(fromByteAtAddress: address)
             break
+        case 0xFF42:
+            // SCY
+            scrollY = value
+            break
+        case 0xFF44:
+            // Ignore writes to LY
+            break
         default:
             /* This mean that somehow the MMU gaves us an address that does not map
              * to anything in the PPU. */
-            fatalError()
+            //fatalError()
             break
         }
     }
