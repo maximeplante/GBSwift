@@ -10,7 +10,7 @@ import Cocoa
 
 class ScreenView: NSView {
 
-    public enum ScreenColor {
+    enum ScreenColor {
         case white
         case lightGrey
         case darkGrey
@@ -42,11 +42,11 @@ class ScreenView: NSView {
         super.init(coder: decoder)
     }
 
-    public func setPixel(x: Int, y: Int, color: ScreenColor) {
+    func setPixel(x: Int, y: Int, color: ScreenColor) {
         screenLines[y][x] = color
     }
 
-    public func redraw() {
+    func redraw() {
         setNeedsDisplay(frame)
     }
 

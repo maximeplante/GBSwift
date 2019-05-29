@@ -9,17 +9,17 @@
 import Foundation
 
 class Gameboy: PPUScreenDelegate {
-    public let cpu: CPU
-    public let mmu: MMU
-    public let ppu: PPU
-    public var breakpoints = [UInt16]()
-    public var debuggerDelegate: GameboyDebuggerDelegate? = nil
-    public var screenDelegate: GameboyScreenDelegate? = nil
+    let cpu: CPU
+    let mmu: MMU
+    let ppu: PPU
+    var breakpoints = [UInt16]()
+    var debuggerDelegate: GameboyDebuggerDelegate? = nil
+    var screenDelegate: GameboyScreenDelegate? = nil
     let queue: DispatchQueue
     let timePerCycle = 1.0 / 4194304.0
     var running = false
 
-    public init(cpu: CPU, mmu: MMU, ppu: PPU) {
+    init(cpu: CPU, mmu: MMU, ppu: PPU) {
         self.cpu = cpu
         self.mmu = mmu
         self.ppu = ppu
@@ -36,7 +36,7 @@ class Gameboy: PPUScreenDelegate {
         let _ = cpu.step()
     }
 
-    public func run() {
+    func run() {
         running = true
         self.loop()
     }
@@ -45,7 +45,7 @@ class Gameboy: PPUScreenDelegate {
         running = false
     }
 
-    public func loop() {
+    func loop() {
         let start = Date().timeIntervalSince1970
         var cycles = 0
 
@@ -75,17 +75,17 @@ class Gameboy: PPUScreenDelegate {
         }
     }
 
-    public func addBreakpoint(address: UInt16) {
+    func addBreakpoint(address: UInt16) {
         breakpoints.append(address)
     }
 
-    public func removeBreakpoint(address: UInt16) {
+    func removeBreakpoint(address: UInt16) {
         if let index = breakpoints.firstIndex(of: address) {
             breakpoints.remove(at: index)
         }
     }
 
-    public func removeAllBreakpoints() {
+    func removeAllBreakpoints() {
         breakpoints.removeAll()
     }
 

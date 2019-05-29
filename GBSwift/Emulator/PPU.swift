@@ -232,7 +232,7 @@ class PPU : ReadWriteable {
 
 class Tile {
     // The integer stores the index of the color in the palette
-    public var pixels: [[Int]]
+    var pixels: [[Int]]
 
     init() {
         pixels = [[Int]]()

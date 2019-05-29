@@ -11,7 +11,7 @@ import Foundation
 class BootRom : ReadWriteable {
     let content: [UInt8]
 
-    public init(fromFile f:URL) {
+    init(fromFile f:URL) {
         if let data = NSData(contentsOf: f) {
             var buffer = [UInt8](repeating: 0, count: data.length)
             data.getBytes(&buffer, length: data.length)
@@ -22,11 +22,11 @@ class BootRom : ReadWriteable {
         }
     }
 
-    public func read(address: UInt16) -> UInt8 {
+    func read(address: UInt16) -> UInt8 {
         return content[Int(address)];
     }
 
-    public func write(address: UInt16, value: UInt8) {
+    func write(address: UInt16, value: UInt8) {
         // TODO: throw error
     }
 }

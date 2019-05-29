@@ -20,16 +20,16 @@ class TerminalWindowController: NSWindowController {
         self.outputTextView.isEditable = false
     }
 
-    public func setTitle(title: String) {
+    func setTitle(title: String) {
         self.window?.title = title
     }
 
-    public func writeLine(content: String) {
+    func writeLine(content: String) {
         write(content: content)
         write(content: "\n")
     }
 
-    public func write(content: String) {
+    func write(content: String) {
         if let ts = outputTextView?.textStorage {
             let attributes = [NSAttributedString.Key.font: NSFont(name: "Menlo", size: 12)]
             let str = NSAttributedString(string: content, attributes: attributes as [NSAttributedString.Key : Any])

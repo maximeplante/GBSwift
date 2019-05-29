@@ -21,7 +21,7 @@ class ScreenWindowController: NSWindowController, GameboyScreenDelegate {
 
     // MARK: - PPUScreenDelegate
 
-    public func setPixel(x: Int, y: Int, color: PPU.Color) {
+    func setPixel(x: Int, y: Int, color: PPU.Color) {
         switch color {
         case .white:
             screen.setPixel(x: x, y: y, color: .white)
@@ -38,7 +38,7 @@ class ScreenWindowController: NSWindowController, GameboyScreenDelegate {
         }
     }
 
-    public func drawScreen() {
+    func drawScreen() {
         screen.redraw()
     }
 }

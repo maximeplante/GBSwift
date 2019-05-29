@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum CPUError: Error {
+enum CPUError: Error {
     case notImplementedInstruction(opcode: UInt8, pc: UInt16)
 }
 
@@ -21,7 +21,7 @@ class CPU {
         case c = 0x10
     }
 
-    public var r: [UInt8]
+    var r: [UInt8]
     let b = 0
     let c = 1
     let d = 2
@@ -31,10 +31,10 @@ class CPU {
     let f = 6
     let a = 7
 
-    public var pc: UInt16
-    public var sp: UInt16
+    var pc: UInt16
+    var sp: UInt16
 
-    public let mmu: MMU
+    let mmu: MMU
 
     init(mmu: MMU) {
         r = [UInt8](repeating: 0, count: 8)
@@ -43,31 +43,31 @@ class CPU {
         sp = 0
     }
 
-    public func reset() {
+    func reset() {
         r = [UInt8](repeating: 0, count: 8)
         pc = 0
         sp = 0
     }
 
     // Read a word from two registers (shortened name because it is often used)
-    public func wWR(_ high: Int, _ low: Int, word: UInt16) {
+    func wWR(_ high: Int, _ low: Int, word: UInt16) {
         r[high] = UInt8((word & 0xFF00) >> 8)
         r[low] = UInt8(word & 0x00FF)
     }
 
     // Write a word from the mmu (shortened name because it is often used)
-    public func wWM(address: UInt16, word: UInt16) {
+    func wWM(address: UInt16, word: UInt16) {
         mmu.write(address: address, value: UInt8(word & 0x00FF))
         mmu.write(address: address + 1, value: UInt8((word & 0xFF00) >> 8))
     }
 
     // Write a word from two registers (shortened name because it is often used)
-    public func rWR(_ high: Int, _ low: Int) -> UInt16 {
+    func rWR(_ high: Int, _ low: Int) -> UInt16 {
         return (UInt16(r[high]) << 8) + UInt16(r[low])
     }
 
     // Read a word from the mmu (shortened name because it is often used)
-    public func rWM(address: UInt16) -> UInt16 {
+    func rWM(address: UInt16) -> UInt16 {
         return UInt16(mmu.read(address: address))
             + UInt16(mmu.read(address: address + 1)) << 8
     }
@@ -76,28 +76,28 @@ class CPU {
      * When a nibble overflows, the H flag generally needs to be set.
      * The sub argument must be true if it is a substraction.
      */
-    public func hasNibbleOverflow(v1: UInt8, v2: UInt8, sub: Bool = false) -> Bool {
+    func hasNibbleOverflow(v1: UInt8, v2: UInt8, sub: Bool = false) -> Bool {
         let correctV2 = sub ? ~v2 + 1 : v2
         return (v1 & 0x0F + correctV2 & 0x0F) & 0x10 == 0x10
     }
 
-    public func setFlag(_ flag: Flag) {
+    func setFlag(_ flag: Flag) {
         r[f] |= flag.rawValue
     }
 
-    public func resetFlag(_ flag: Flag) {
+    func resetFlag(_ flag: Flag) {
         r[f] &= ~flag.rawValue
     }
 
-    public func flag(_ flag: Flag) -> Bool {
+    func flag(_ flag: Flag) -> Bool {
         return r[f] & flag.rawValue == flag.rawValue
     }
 
-    public func unsignedToSigned(_ byte: UInt8) -> Int8 {
+    func unsignedToSigned(_ byte: UInt8) -> Int8 {
         return Int8(bitPattern: byte)
     }
 
-    public func step() -> Int {
+    func step() -> Int {
         let opcode = mmu.read(address: pc)
         let info = executeInstruction(opcode: opcode,
                                       byte: mmu.read(address: pc + 1),
@@ -106,7 +106,7 @@ class CPU {
         return info.cycles
     }
 
-    public func executeInstruction(opcode: UInt8, byte: UInt8, word: UInt16) -> (size: Int, cycles: Int) {
+    func executeInstruction(opcode: UInt8, byte: UInt8, word: UInt16) -> (size: Int, cycles: Int) {
             switch opcode {
             case 0x00:
                 // NOP

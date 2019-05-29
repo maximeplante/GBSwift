@@ -16,7 +16,7 @@ class Debugger: TerminalWindowControllerDelegate, GameboyDebuggerDelegate {
 
     var lastCommand: String
 
-    public init(withTerminal terminal: TerminalWindowController,
+    init(withTerminal terminal: TerminalWindowController,
                 andGameboy gameboy: Gameboy) {
         self.terminal = terminal
         self.gameboy = gameboy
@@ -167,7 +167,7 @@ class Debugger: TerminalWindowControllerDelegate, GameboyDebuggerDelegate {
 
     // MARK: - TerminalWindowControllerDelegate
 
-    public func command(input: String) {
+    func command(input: String) {
         var command = input
         if command.count == 0 {
             command = lastCommand
@@ -204,7 +204,7 @@ class Debugger: TerminalWindowControllerDelegate, GameboyDebuggerDelegate {
         }
     }
 
-    // MARK: - GameboyDelegate
+    // MARK: - GameboyDebuggerDelegate
 
     func didEncounterBreakpoint() {
         terminal.writeLine(content: "Breakpoint encountered")

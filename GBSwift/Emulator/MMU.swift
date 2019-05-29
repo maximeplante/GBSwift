@@ -10,13 +10,13 @@ import Foundation
 
 class MMU: ReadWriteable {
 
-    public let bootRom: ReadWriteable
-    public let ppu: PPU
-    public var bootRomVisile: Bool
-    public var content: [UInt8]
+    let bootRom: ReadWriteable
+    let ppu: PPU
+    var bootRomVisile: Bool
+    var content: [UInt8]
 
     // TODO: Remove once the boorom is fully tested
-    public var logo: [UInt8] = [0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B, 0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00, 0x0D, 0x00, 0x08, 0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E, 0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD, 0xD9, 0x99, 0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC, 0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E]
+    var logo: [UInt8] = [0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B, 0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00, 0x0D, 0x00, 0x08, 0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E, 0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD, 0xD9, 0x99, 0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC, 0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E]
 
     init(bootRom: ReadWriteable, ppu: PPU) {
         self.bootRom = bootRom
@@ -25,7 +25,7 @@ class MMU: ReadWriteable {
         content = [UInt8].init(repeating: 0x00, count: 65536)
     }
 
-    public func reset() {
+    func reset() {
         bootRomVisile = true
         content = [UInt8].init(repeating: 0x00, count: 65536)
     }
@@ -42,7 +42,7 @@ class MMU: ReadWriteable {
             return content[Int(address)]
         case 0x8000...0x9FFF:
             return ppu.read(address: address)
-        case 0xFF40...0xFF46:
+        case 0xFF40...0xFF47:
             return ppu.read(address: address)
         default:
             return content[Int(address)]
@@ -57,14 +57,14 @@ class MMU: ReadWriteable {
         case 0x8000...0x9FFF:
             ppu.write(address: address, value: value)
             break
-        case 0xFF40...0xFF46:
+        case 0xFF40...0xFF47:
             return ppu.write(address: address, value: value)
         default:
             break
         }
     }
 
-    public func readRange(offset: UInt16, length: UInt16) -> [UInt8] {
+    func readRange(offset: UInt16, length: UInt16) -> [UInt8] {
         var output = [UInt8]()
         for i in Int(offset)...Int(offset) + Int(length) - 1 {
             if i <= UInt16.max {
