@@ -10,11 +10,11 @@ import Foundation
 
 class PPU : ReadWriteable {
 
-    public enum Color {
-        case white
-        case lightGrey
-        case darkGrey
-        case black
+    enum Color: UInt8 {
+        case white = 0
+        case lightGrey = 1
+        case darkGrey = 2
+        case black = 3
     }
 
     // General
@@ -173,6 +173,13 @@ class PPU : ReadWriteable {
             break
         case 0xFF44:
             // Ignore writes to LY
+            break
+        case 0xFF47:
+            // BGP
+            bgPalette[0] = Color(rawValue: (value & 0x03))!
+            bgPalette[1] = Color(rawValue: ((value & 0x0C) >> 2))!
+            bgPalette[2] = Color(rawValue: ((value & 0x30) >> 4))!
+            bgPalette[3] = Color(rawValue: ((value & 0xC0) >> 6))!
             break
         default:
             /* This mean that somehow the MMU gaves us an address that does not map
