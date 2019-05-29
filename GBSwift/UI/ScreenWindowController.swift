@@ -19,7 +19,11 @@ class ScreenWindowController: NSWindowController, GameboyScreenDelegate {
         window?.title = "Screen"
     }
 
-    // MARK: - PPUScreenDelegate
+    // MARK: - GameboyScreenDelegate
+
+    func reset() {
+        screen.reset()
+    }
 
     func setPixel(x: Int, y: Int, color: PPU.Color) {
         switch color {

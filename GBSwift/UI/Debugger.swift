@@ -90,9 +90,14 @@ class Debugger: TerminalWindowControllerDelegate, GameboyDebuggerDelegate {
         terminal.writeLine(content: "Running...")
     }
 
+    func stopCommand(arguments: Array<Substring>) {
+        gameboy.shouldStop()
+        terminal.writeLine(content: "Trying to stop...")
+    }
+
     func resetCommand(arguments: Array<Substring>) {
-        gameboy.reset()
-        terminal.writeLine(content: "Gameboy Reset")
+        gameboy.shouldReset()
+        terminal.writeLine(content: "Trying to reset...")
     }
 
     func tryParseIntArgument(arguments: Array<Substring>, index: Int) -> Int? {
@@ -196,6 +201,9 @@ class Debugger: TerminalWindowControllerDelegate, GameboyDebuggerDelegate {
         case "run", "r":
             runCommand(arguments: arguments)
             break
+        case "stop":
+            stopCommand(arguments: arguments)
+            break
         case "reset", "rst":
             resetCommand(arguments: arguments)
             break
@@ -213,5 +221,13 @@ class Debugger: TerminalWindowControllerDelegate, GameboyDebuggerDelegate {
 
     func didEncounterExecutionError(message: String) {
         terminal.writeLine(content: "Error: " + message)
+    }
+
+    func didStop() {
+        terminal.writeLine(content: "Gameboy stopped")
+    }
+
+    func didReset() {
+        terminal.writeLine(content: "Gameboy reset")
     }
 }

@@ -79,6 +79,29 @@ class PPU : ReadWriteable {
         scrollY = 0
     }
 
+    func reset() {
+        bgTileMapSelect = 0
+        tileDataSelect = 0
+        bgPalette = [.white, .lightGrey, .darkGrey, .black]
+
+        displayOn = false
+        tileData = [Tile]()
+        for _ in 0..<385 {
+            tileData.append(Tile())
+        }
+
+        bgTileMap = [Int](repeating: 0, count: 2 * 32 * 32)
+
+        memory = [UInt8](repeating: 0, count: 65536)
+
+        rasterLine = 0
+        rasterClock = 0
+        rasterMode = RasterMode.hblank
+
+        scrollX = 0
+        scrollY = 0
+    }
+
     // MARK: - Raster
 
     func step(cpuCyclesDelta: Int) {

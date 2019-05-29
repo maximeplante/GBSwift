@@ -50,6 +50,15 @@ class ScreenView: NSView {
         setNeedsDisplay(frame)
     }
 
+    func reset() {
+        screenLines = [[ScreenColor]]()
+        for _ in 0..<screenHeight {
+            let pixelRow = Array(repeating: ScreenColor.white, count: screenWidth)
+            screenLines.append(pixelRow)
+        }
+        setNeedsDisplay(frame)
+    }
+
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
 
