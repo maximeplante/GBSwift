@@ -27,7 +27,13 @@ class PPU : ReadWriteable {
     // Raw representation of the memory for read/write operations
     var memory: [UInt8]
 
+    // Window
+    // 0: tile map #1, 1: tile map#2
+    var wTileMapSelect: Int
+    var displayWindow: Bool
+
     // Background
+    var displayBackground: Bool
     // 0: tile map #1, 1: tile map#2
     var bgTileMapSelect: Int
     // Contains the four colors of the background palette
@@ -38,6 +44,10 @@ class PPU : ReadWriteable {
      * written to memory by the CPU are converted to indexes of the internal
      * tileData array when written. */
     var bgTileMap: [Int]
+
+    // Sprite
+    var largeSprites: Bool
+    var displaySprites: Bool
 
     // Raster
     enum RasterMode: Int {
@@ -57,6 +67,11 @@ class PPU : ReadWriteable {
     var screenDelegate: PPUScreenDelegate?
 
     init() {
+        displayBackground = false
+        largeSprites = false
+        displaySprites = false
+        wTileMapSelect = 0
+        displayWindow = false
         bgTileMapSelect = 0
         tileDataSelect = 0
         bgPalette = [.white, .lightGrey, .darkGrey, .black]
@@ -150,16 +165,18 @@ class PPU : ReadWriteable {
     func display(line screenY: Int) {
         let bgY = (screenY + Int(scrollY)) & 0xFF
         for screenX in 0..<160 {
-            let bgX = (screenX + Int(scrollX)) & 0xFF
-            var tileMapIndex = ((bgY & 0xF8) >> 3) * 32 + ((bgX & 0xF8) >> 3)
-            tileMapIndex += bgTileMapSelect == 0 ? 0 : 256
-            let tileIndex = bgTileMap[Int(tileMapIndex)]
-            let tile = tileData[tileIndex]
-            let yInTile = bgY % 8
-            let xInTile = bgX % 8
-            let relativeColor = tile.pixels[yInTile][xInTile]
-            let color = bgPalette[relativeColor]
-            screenDelegate?.setPixel(x: screenX, y: screenY, color: color)
+            if (displayBackground) {
+                let bgX = (screenX + Int(scrollX)) & 0xFF
+                var tileMapIndex = ((bgY & 0xF8) >> 3) * 32 + ((bgX & 0xF8) >> 3)
+                tileMapIndex += bgTileMapSelect == 0 ? 0 : 256
+                let tileIndex = bgTileMap[Int(tileMapIndex)]
+                let tile = tileData[tileIndex]
+                let yInTile = bgY % 8
+                let xInTile = bgX % 8
+                let relativeColor = tile.pixels[yInTile][xInTile]
+                let color = bgPalette[relativeColor]
+                screenDelegate?.setPixel(x: screenX, y: screenY, color: color)
+            }
         }
     }
 
@@ -190,6 +207,10 @@ class PPU : ReadWriteable {
             // Tile Map #0 and #1
             updateTileMap(fromByteAtAddress: address)
             break
+        case 0xFF40:
+            // LCDC
+            updateLCDC(withValue: value)
+            break
         case 0xFF42:
             // SCY
             scrollY = value
@@ -210,6 +231,19 @@ class PPU : ReadWriteable {
             //fatalError()
             break
         }
+    }
+
+    // MARK: - General Registers
+
+    func updateLCDC(withValue value: UInt8) {
+        displayOn = value & 0x80 == 0x80
+        wTileMapSelect = Int(value & 0x40) >> 6
+        displayWindow = value & 0x40 == 0x40
+        tileDataSelect = Int(value & 0x10) >> 4
+        bgTileMapSelect = Int(value & 0x08) >> 3
+        largeSprites = value & 0x04 == 0x04
+        displaySprites = value & 0x02 == 0x02
+        displayBackground = value & 0x01 == 0x01
     }
 
     // MARK: - Background Tile Map
