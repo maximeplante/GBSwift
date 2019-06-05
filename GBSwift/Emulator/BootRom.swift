@@ -17,8 +17,7 @@ class BootRom : ReadWriteable {
             data.getBytes(&buffer, length: data.length)
             content = buffer
         } else {
-            // TODO: throw error
-            content = [UInt8](repeating: 0, count: 256)
+            fatalError()
         }
     }
 

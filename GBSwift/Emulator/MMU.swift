@@ -14,13 +14,15 @@ class MMU: ReadWriteable {
     let ppu: PPU
     var bootRomVisile: Bool
     var content: [UInt8]
+    let cartridge: Cartridge
 
     // TODO: Remove once the boorom is fully tested
     var logo: [UInt8] = [0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B, 0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00, 0x0D, 0x00, 0x08, 0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E, 0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD, 0xD9, 0x99, 0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC, 0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E]
 
-    init(bootRom: ReadWriteable, ppu: PPU) {
+    init(bootRom: ReadWriteable, ppu: PPU, cartridge: Cartridge) {
         self.bootRom = bootRom
         self.ppu = ppu
+        self.cartridge = cartridge
         bootRomVisile = true
         content = [UInt8].init(repeating: 0x00, count: 65536)
     }
@@ -32,14 +34,11 @@ class MMU: ReadWriteable {
 
     func read(address: UInt16) -> UInt8 {
         switch address {
-        // TODO: Remove once the boorom is fully tested
-        case 0x104...0x133:
-            return logo[Int(address) - 0x104]
-        case 0x0000...0x00FF:
-            if (bootRomVisile) {
+        case 0x0000...0x7FFF:
+            if (bootRomVisile && address < 0x0100) {
                 return bootRom.read(address: address)
             }
-            return content[Int(address)]
+            return cartridge.read(address: address)
         case 0x8000...0x9FFF:
             return ppu.read(address: address)
         case 0xFF40...0xFF47:

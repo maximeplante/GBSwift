@@ -111,6 +111,10 @@ class CPU {
             case 0x00:
                 // NOP
                 return (1, 4)
+            case 0x01:
+                // LD BC, d16
+                wWR(b, c, word: word)
+                return (3, 12)
             case 0x03:
                 // INC BC
                 wWR(b, c, word: rWR(b, c) + 1)
@@ -121,6 +125,10 @@ class CPU {
                  0x34, 0x35, 0x3C, 0x3D:
                 // INC/DEC R
                 return incDecR(opcode: opcode);
+            case 0x0B:
+                // DEC BC
+                wWR(b, c, word: rWR(b, c) - 1)
+                return (1, 8)
             case 0x11:
                 wWR(d, e, word: word)
                 return (3, 12)
@@ -156,6 +164,17 @@ class CPU {
                 // INC HL
                 wWR(h, l, word: rWR(h, l) + 1)
                 return (1, 8)
+            case 0x2A:
+                // LD A, (HL+)
+                r[a] = mmu.read(address: rWR(h, l))
+                wWR(h, l, word: rWR(h, l) + 1)
+                return (1, 8)
+            case 0x2F:
+                // CPL
+                r[a] = ~r[a]
+                setFlag(.h)
+                setFlag(.n)
+                return (1, 4)
             case 0x31:
                 // LD SP, d16
                 sp = word
@@ -204,6 +223,10 @@ class CPU {
                 wWR(b, c, word: rWM(address: sp))
                 sp += 2
                 return (1, 12)
+            case 0xC3:
+                // JP a16
+                pc = word - 3
+                return (3, 16)
             case 0xC5:
                 // PUSH BC
                 sp -= 2
@@ -240,10 +263,18 @@ class CPU {
                 // LDH A, (a8)
                 r[a] = mmu.read(address: 0xFF00 + UInt16(byte))
                 return (2, 12)
+            case 0xF3:
+                // DI
+                // TODO: When implementing interrupts
+                return (1, 4)
             case 0xFA:
                 // LD A, (a16)
                 r[a] = mmu.read(address: word)
                 return (3, 16)
+            case 0xFB:
+                // EI
+                // TODO: When implementing interrupts
+                return (1, 4)
             default:
                 fatalError()
             }

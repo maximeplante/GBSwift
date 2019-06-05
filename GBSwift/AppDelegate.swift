@@ -23,10 +23,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize boot rom
         let rom = Bundle.main.url(forResource: "rom", withExtension: "bin")
         let bootRom = BootRom(fromFile: rom!)
+        let game = Bundle.main.url(forResource: "game", withExtension: "gb")
+        let cartridge = Cartridge(fromFile: game!)
 
         // Initialize Gameboy
         ppu = PPU()
-        mmu = MMU(bootRom: bootRom, ppu: ppu)
+        mmu = MMU(bootRom: bootRom, ppu: ppu, cartridge: cartridge)
         cpu = CPU(mmu: mmu)
         gameboy = Gameboy(cpu: cpu, mmu: mmu, ppu: ppu)
 
