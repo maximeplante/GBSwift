@@ -57,7 +57,11 @@ class MMU: ReadWriteable {
             ppu.write(address: address, value: value)
             break
         case 0xFF40...0xFF47:
-            return ppu.write(address: address, value: value)
+            ppu.write(address: address, value: value)
+            break
+        case 0xFF50:
+            bootRomVisile = false
+            break
         default:
             break
         }
