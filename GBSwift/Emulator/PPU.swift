@@ -228,7 +228,7 @@ class PPU : ReadWriteable {
         default:
             /* This mean that somehow the MMU gaves us an address that does not map
              * to anything in the PPU. */
-            //fatalError()
+            // fatalError()
             break
         }
     }
@@ -258,13 +258,10 @@ class PPU : ReadWriteable {
     func internalTileDataIndex(fromIndex index: UInt8) -> Int {
         if tileDataSelect == 0 {
             return Int(index)
-        }
-        if tileDataSelect == 1 {
+        } else {
             let signedIndex = Int8(bitPattern: index)
             return 256 + Int(signedIndex)
         }
-        // Cannot select another tile data set than those two
-        fatalError()
     }
 
     // MARK: - Tile Data

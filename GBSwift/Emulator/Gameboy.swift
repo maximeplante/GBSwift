@@ -30,7 +30,7 @@ class Gameboy: PPUScreenDelegate {
     }
 
     func step() throws {
-        let _ = cpu.step()
+        let _ = try cpu.step()
     }
 
     func run() {
@@ -51,34 +51,55 @@ class Gameboy: PPUScreenDelegate {
         var cycles = 0
 
         while cycles < 100000 {
-            let delta = self.cpu.step()
-            cycles += delta
-            self.ppu.step(cpuCyclesDelta: delta)
-            if (self.breakpoints.count > 0 && self.breakpoints.contains(self.cpu.pc)) {
-                self.running = false
-                DispatchQueue.main.async {
-                    self.debuggerDelegate?.didEncounterBreakpoint()
+            do {
+                if self.stopRequested {
+                    stopRequested = false
+                    running = false
+                    DispatchQueue.main.async {
+                        self.debuggerDelegate?.didStop()
+                    }
+                    return
                 }
-            }
-            if self.stopRequested {
-                stopRequested = false
-                running = false
-                DispatchQueue.main.async {
-                    self.debuggerDelegate?.didStop()
+
+                if self.resetRequested {
+                    resetRequested = false
+                    mmu.reset()
+                    cpu.reset()
+                    ppu.reset()
+                    DispatchQueue.main.async {
+                        self.debuggerDelegate?.didReset()
+                    }
                 }
-                return
-            }
-            if self.resetRequested {
-                resetRequested = false
-                mmu.reset()
-                cpu.reset()
-                ppu.reset()
-                DispatchQueue.main.async {
-                    self.debuggerDelegate?.didReset()
+
+                if !self.running {
+                    return
                 }
-            }
-            if !self.running {
-                return
+
+                let delta = try self.cpu.step()
+                cycles += delta
+                self.ppu.step(cpuCyclesDelta: delta)
+                if (self.breakpoints.count > 0 && self.breakpoints.contains(self.cpu.pc)) {
+                    self.running = false
+                    DispatchQueue.main.async {
+                        self.debuggerDelegate?.didEncounterBreakpoint()
+                    }
+                }
+
+            } catch {
+
+                switch error {
+                case let cpuError as CPUError:
+                    DispatchQueue.main.async {
+                        self.debuggerDelegate?.didEncounterCPUError(error: cpuError)
+                    }
+                    break
+                default:
+                    DispatchQueue.main.async {
+                        self.debuggerDelegate?.didEncounterUndefinedError(error: error)
+                    }
+                    break
+                }
+                self.shouldStop()
             }
         }
 
@@ -124,6 +145,8 @@ protocol GameboyDebuggerDelegate {
     func didEncounterExecutionError(message: String)
     func didStop()
     func didReset()
+    func didEncounterCPUError(error: CPUError)
+    func didEncounterUndefinedError(error: Error)
 }
 
 protocol GameboyScreenDelegate {

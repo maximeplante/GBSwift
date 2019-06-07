@@ -230,4 +230,17 @@ class Debugger: TerminalWindowControllerDelegate, GameboyDebuggerDelegate {
     func didReset() {
         terminal.writeLine(content: "Gameboy reset")
     }
+
+    func didEncounterCPUError(error: CPUError) {
+        switch error {
+        case .notImplementedInstruction(let opcode, let pc):
+            let message = String(format: "Error: Instruction with opcode %02X at address %04X is not implemented", opcode, pc)
+            terminal.writeLine(content: message)
+        }
+
+    }
+
+    func didEncounterUndefinedError(error: Error) {
+        terminal.writeLine(content: "Error: An unexpected error happened.")
+    }
 }

@@ -24,7 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let rom = Bundle.main.url(forResource: "rom", withExtension: "bin")
         let bootRom = BootRom(fromFile: rom!)
         let game = Bundle.main.url(forResource: "game", withExtension: "gb")
-        let cartridge = Cartridge(fromFile: game!)
+        let cartridge = try! Cartridge(fromFile: game!)
 
         // Initialize Gameboy
         ppu = PPU()

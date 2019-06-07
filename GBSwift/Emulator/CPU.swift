@@ -97,16 +97,16 @@ class CPU {
         return Int8(bitPattern: byte)
     }
 
-    func step() -> Int {
+    func step() throws -> Int {
         let opcode = mmu.read(address: pc)
-        let info = executeInstruction(opcode: opcode,
+        let info = try executeInstruction(opcode: opcode,
                                       byte: mmu.read(address: pc + 1),
                                       word: rWM(address: pc + 1))
         pc += UInt16(info.size)
         return info.cycles
     }
 
-    func executeInstruction(opcode: UInt8, byte: UInt8, word: UInt16) -> (size: Int, cycles: Int) {
+    func executeInstruction(opcode: UInt8, byte: UInt8, word: UInt16) throws -> (size: Int, cycles: Int) {
             switch opcode {
             case 0x00:
                 // NOP
@@ -276,7 +276,7 @@ class CPU {
                 // TODO: When implementing interrupts
                 return (1, 4)
             default:
-                fatalError()
+                throw CPUError.notImplementedInstruction(opcode: opcode, pc: pc)
             }
     }
 
@@ -363,7 +363,8 @@ class CPU {
             jump = flag(.c);
             break;
         default:
-            fatalError()
+            // The method is never called with an invalid opcode
+            fatalError("The JR CPU method got called with an opcode that is not a JR instruction")
         }
         if jump {
             pc = UInt16(Int16(pc) + Int16(unsignedToSigned(byte)))
@@ -471,7 +472,7 @@ class CPU {
             r[a] = r[a] | input
             break
         default:
-            fatalError()
+            fatalError("The cpu bitwise function got called with an opcode that is not a bitwise operation")
         }
 
         if (r[a] == 0) {

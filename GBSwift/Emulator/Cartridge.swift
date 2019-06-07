@@ -8,6 +8,10 @@
 
 import Foundation
 
+enum CartridgeError : Error {
+    case fileNotFound(path: String)
+}
+
 class Cartridge: ReadWriteable {
     var romBanks: [RomBank]
     var selectedRomBank: Int
@@ -17,7 +21,7 @@ class Cartridge: ReadWriteable {
         case RomOnly
     }
 
-    init(fromFile f: URL) {
+    init(fromFile f: URL) throws {
         guard let data = NSData(contentsOf: f) else {
             fatalError()
         }
@@ -34,7 +38,7 @@ class Cartridge: ReadWriteable {
         case 0x00:
             mbc = .RomOnly
         default:
-            fatalError()
+            throw CartridgeError.fileNotFound(path: f.absoluteString)
         }
     }
 
