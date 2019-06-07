@@ -172,8 +172,7 @@ class CPU {
                 return (1, 4)
             case 0xC1:
                 // POP BC
-                wWR(b, c, word: rWM(address: sp))
-                sp += 2
+                wWR(b, c, word: pop())
                 return (1, 12)
             case 0xC3:
                 // JP a16
@@ -181,13 +180,11 @@ class CPU {
                 return (3, 16)
             case 0xC5:
                 // PUSH BC
-                sp -= 2
-                wWM(address: sp, word: rWR(b, c))
+                push(rWR(b, c))
                 return (1, 16)
             case 0xC9:
                 // RET
-                pc = rWM(address: sp) - 1
-                sp += 2
+                pc = pop() - 1
                 return (1, 16)
             case 0xCB:
                 // CB prefix instructions
@@ -195,8 +192,7 @@ class CPU {
                 return (info.size + 1, info.cycles)
             case 0xCD:
                 // CALL a16
-                wWM(address: sp - 2, word: pc + 3)
-                sp -= 2
+                push(pc + 3)
                 pc = word - 3
                 return (3, 24)
             case 0xE0:
@@ -280,6 +276,17 @@ class CPU {
 
     func unsignedToSigned(_ byte: UInt8) -> Int8 {
         return Int8(bitPattern: byte)
+    }
+
+    func push(_ word: UInt16) {
+        sp -= 2
+        wWM(address: sp, word: word)
+    }
+
+    func pop() -> UInt16 {
+        let v = rWM(address: sp)
+        sp += 2
+        return v
     }
 
     // MARK: - Instruction Implementation
