@@ -199,6 +199,10 @@ class CPU {
                 // LDH (a8), A
                 mmu.write(address: 0xFF00 + UInt16(byte), value: r[a])
                 return (2, 12)
+            case 0xE1:
+                // POP HL
+                wWR(h, l, word: pop())
+                return (1, 12)
             case 0xE2:
                 // LDH (C), A
                 mmu.write(address: 0xFF00 + UInt16(r[c]), value: r[a])
@@ -210,7 +214,7 @@ class CPU {
             case 0xEF:
                 // RST 28H
                 push(pc + 3)
-                pc = UInt16(byte)
+                pc = 0x28
                 return (1, 16)
             case 0xF0:
                 // LDH A, (a8)
@@ -429,7 +433,7 @@ class CPU {
         // Is it a substraction
         let sub = op & 0x10 == 0x10
         // Does it consider the carry
-        let carry = op & 0x80 == 0x80
+        let carry = op & 0x08 == 0x08
         // The input register
         let register = Int(op & 0x07)
         // The input is an immediate value instead of a register
@@ -441,7 +445,7 @@ class CPU {
         input = immediate ? byte : input
 
         // Invert the input if it is a substraction
-        input = sub ? ~input &+ 1 : input
+        input = sub ? (~input) &+ 1 : input
         var output = r[a] &+ input
         // Add the carry if necessary
         output += carry && flag(.c) ? 1 : 0
