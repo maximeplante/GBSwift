@@ -49,54 +49,6 @@ class CPU {
         sp = 0
     }
 
-    // Read a word from two registers (shortened name because it is often used)
-    func wWR(_ high: Int, _ low: Int, word: UInt16) {
-        r[high] = UInt8((word & 0xFF00) >> 8)
-        r[low] = UInt8(word & 0x00FF)
-    }
-
-    // Write a word from the mmu (shortened name because it is often used)
-    func wWM(address: UInt16, word: UInt16) {
-        mmu.write(address: address, value: UInt8(word & 0x00FF))
-        mmu.write(address: address + 1, value: UInt8((word & 0xFF00) >> 8))
-    }
-
-    // Write a word from two registers (shortened name because it is often used)
-    func rWR(_ high: Int, _ low: Int) -> UInt16 {
-        return (UInt16(r[high]) << 8) + UInt16(r[low])
-    }
-
-    // Read a word from the mmu (shortened name because it is often used)
-    func rWM(address: UInt16) -> UInt16 {
-        return UInt16(mmu.read(address: address))
-            + UInt16(mmu.read(address: address + 1)) << 8
-    }
-
-    /* Use to detect if the addition of v1 and v2 causes a nibble overflow.
-     * When a nibble overflows, the H flag generally needs to be set.
-     * The sub argument must be true if it is a substraction.
-     */
-    func hasNibbleOverflow(v1: UInt8, v2: UInt8, sub: Bool = false) -> Bool {
-        let correctV2 = sub ? ~v2 + 1 : v2
-        return (v1 & 0x0F + correctV2 & 0x0F) & 0x10 == 0x10
-    }
-
-    func setFlag(_ flag: Flag) {
-        r[f] |= flag.rawValue
-    }
-
-    func resetFlag(_ flag: Flag) {
-        r[f] &= ~flag.rawValue
-    }
-
-    func flag(_ flag: Flag) -> Bool {
-        return r[f] & flag.rawValue == flag.rawValue
-    }
-
-    func unsignedToSigned(_ byte: UInt8) -> Int8 {
-        return Int8(bitPattern: byte)
-    }
-
     func step() throws -> Int {
         let opcode = mmu.read(address: pc)
         let info = try executeInstruction(opcode: opcode,
@@ -278,6 +230,56 @@ class CPU {
             default:
                 throw CPUError.notImplementedInstruction(opcode: opcode, pc: pc)
             }
+    }
+
+    // MARK: - Insutrction Helpers
+
+    // Read a word from two registers (shortened name because it is often used)
+    func wWR(_ high: Int, _ low: Int, word: UInt16) {
+        r[high] = UInt8((word & 0xFF00) >> 8)
+        r[low] = UInt8(word & 0x00FF)
+    }
+
+    // Write a word from the mmu (shortened name because it is often used)
+    func wWM(address: UInt16, word: UInt16) {
+        mmu.write(address: address, value: UInt8(word & 0x00FF))
+        mmu.write(address: address + 1, value: UInt8((word & 0xFF00) >> 8))
+    }
+
+    // Write a word from two registers (shortened name because it is often used)
+    func rWR(_ high: Int, _ low: Int) -> UInt16 {
+        return (UInt16(r[high]) << 8) + UInt16(r[low])
+    }
+
+    // Read a word from the mmu (shortened name because it is often used)
+    func rWM(address: UInt16) -> UInt16 {
+        return UInt16(mmu.read(address: address))
+            + UInt16(mmu.read(address: address + 1)) << 8
+    }
+
+    /* Use to detect if the addition of v1 and v2 causes a nibble overflow.
+     * When a nibble overflows, the H flag generally needs to be set.
+     * The sub argument must be true if it is a substraction.
+     */
+    func hasNibbleOverflow(v1: UInt8, v2: UInt8, sub: Bool = false) -> Bool {
+        let correctV2 = sub ? ~v2 + 1 : v2
+        return (v1 & 0x0F + correctV2 & 0x0F) & 0x10 == 0x10
+    }
+
+    func setFlag(_ flag: Flag) {
+        r[f] |= flag.rawValue
+    }
+
+    func resetFlag(_ flag: Flag) {
+        r[f] &= ~flag.rawValue
+    }
+
+    func flag(_ flag: Flag) -> Bool {
+        return r[f] & flag.rawValue == flag.rawValue
+    }
+
+    func unsignedToSigned(_ byte: UInt8) -> Int8 {
+        return Int8(bitPattern: byte)
     }
 
     // MARK: - Instruction Implementation
