@@ -207,6 +207,11 @@ class CPU {
                 // LD (a16), A
                 mmu.write(address: word, value: r[a])
                 return (3, 16)
+            case 0xEF:
+                // RST 28H
+                push(pc + 3)
+                pc = UInt16(byte)
+                return (1, 16)
             case 0xF0:
                 // LDH A, (a8)
                 r[a] = mmu.read(address: 0xFF00 + UInt16(byte))
@@ -228,7 +233,7 @@ class CPU {
             }
     }
 
-    // MARK: - Insutrction Helpers
+    // MARK: - Instruction Helpers
 
     // Read a word from two registers (shortened name because it is often used)
     func wWR(_ high: Int, _ low: Int, word: UInt16) {
