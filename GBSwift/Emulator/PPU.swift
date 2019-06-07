@@ -127,20 +127,20 @@ class PPU : ReadWriteable {
         switch rasterMode {
         case .oam:
             if rasterClock >= 80 {
-                rasterClock = 0
+                rasterClock = rasterClock - 80
                 rasterMode = .vram
             }
             break
         case .vram:
             if rasterClock >= 172 {
-                rasterClock = 0
+                rasterClock = rasterClock - 172
                 rasterMode = .hblank
                 display(line: rasterLine)
             }
             break
         case .hblank:
             if rasterClock >= 204 {
-                rasterClock = 0
+                rasterClock = rasterClock - 204
                 rasterLine += 1
                 if rasterLine == 143 {
                     rasterMode = .vblank
@@ -150,7 +150,7 @@ class PPU : ReadWriteable {
             }
         case .vblank:
             if rasterClock >= 456 {
-                rasterClock = 0
+                rasterClock = rasterClock - 456
                 rasterLine += 1
 
                 if (rasterLine > 153) {
