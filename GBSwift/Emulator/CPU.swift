@@ -76,7 +76,10 @@ class CPU {
                  0x24, 0x25, 0x2C, 0x2D,
                  0x34, 0x35, 0x3C, 0x3D:
                 // INC/DEC R
-                return incDecR(opcode: opcode);
+                return incDecR(opcode: opcode)
+            case 0x09, 0x19, 0x29, 0x39:
+                // ADD HL, RR
+                return addHLRR(opcode)
             case 0x0B:
                 // DEC BC
                 wWR(b, c, word: rWR(b, c) - 1)
@@ -195,6 +198,10 @@ class CPU {
                 push(pc + 3)
                 pc = word - 3
                 return (3, 24)
+            case 0xD5:
+                // PUSH DE
+                push(rWR(d, e))
+                return (1, 16)
             case 0xE0:
                 // LDH (a8), A
                 mmu.write(address: 0xFF00 + UInt16(byte), value: r[a])
@@ -207,6 +214,10 @@ class CPU {
                 // LDH (C), A
                 mmu.write(address: 0xFF00 + UInt16(r[c]), value: r[a])
                 return (1, 8)
+            case 0xE9:
+                // JP (HL)
+                pc = rWM(address: rWR(h, l))
+                return (1, 4)
             case 0xEA:
                 // LD (a16), A
                 mmu.write(address: word, value: r[a])
@@ -232,6 +243,11 @@ class CPU {
                 // EI
                 // TODO: When implementing interrupts
                 return (1, 4)
+            case 0xFF:
+                // RST 38H
+                push(pc + 3)
+                pc = 0x38
+                return (1, 16)
             default:
                 throw CPUError.notImplementedInstruction(opcode: opcode, pc: pc)
             }
@@ -269,6 +285,18 @@ class CPU {
     func hasNibbleOverflow(v1: UInt8, v2: UInt8, sub: Bool = false) -> Bool {
         let correctV2 = sub ? ~v2 + 1 : v2
         return (v1 & 0x0F + correctV2 & 0x0F) & 0x10 == 0x10
+    }
+
+    func hasNibbleOverflow(v1: UInt16, v2: UInt16, sub: Bool = false) -> Bool {
+        let correctV2 = sub ? ~v2 + 1 : v2
+        let v1LSB = UInt8(v1 & 0x00FF)
+        var v1MSB = UInt8((v1 & 0xFF00) >> 8)
+        let v2LSB = UInt8(correctV2 & 0x00FF)
+        let v2MSB = UInt8((correctV2 & 0xFF00) >> 8)
+        if (UInt16(v1LSB) + UInt16(v2LSB) > 0xFF) {
+            v1MSB += 1
+        }
+        return hasNibbleOverflow(v1: v1MSB, v2: v2MSB)
     }
 
     func setFlag(_ flag: Flag) {
@@ -500,6 +528,36 @@ class CPU {
         }
 
         return (1, useHL ? 8 : 4)
+    }
+
+    func addHLRR(_ opcode: UInt8) -> (size: Int, cycles: Int) {
+        resetFlag(.n)
+        resetFlag(.h)
+        resetFlag(.c)
+        let v1 = rWR(h, l)
+        let v2: UInt16
+        switch (opcode & 0xF0) >> 4 {
+        case 0:
+            v2 = rWR(b, c)
+            break
+        case 1:
+            v2 = rWR(d, e)
+            break
+        case 2:
+            v2 = rWR(h, l)
+            break
+        default:
+            v2 = sp
+            break
+        }
+        wWR(h, l, word: v1 + v2)
+        if Int(v1) + Int(v2) > UINT16_MAX {
+            setFlag(.c)
+        }
+        if hasNibbleOverflow(v1: v1, v2: v2) {
+            setFlag(.h)
+        }
+        return (1, 8)
     }
 
     func cb(opcode: UInt8) -> (size: Int, cycles: Int) {
