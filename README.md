@@ -1,5 +1,5 @@
 # GBSwift
-A Gameboy DMG emulator written in Swift.
+A DMG Gameboy emulator written in Swift.
 
 ![Demo of the emulator running the Gameboy boot animation](demo.gif)
 
